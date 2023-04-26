@@ -5,9 +5,9 @@
 
 
 //Field
+using System.Text;
+
 const int fieldLength = 50, fieldWidth = 15;
-const char fieldTile = '#';
-string line = string.Concat(Enumerable.Repeat(fieldTile, fieldLength));
 
 //Rackets 
 const int racketLength = fieldWidth / 4;
@@ -34,24 +34,13 @@ int scoreboardY = fieldWidth + 1;
 
 Console.Clear();
 
+//Print the borders
+DrawBoard(fieldLength, fieldWidth);
+
 // game loop
 while (true)
 {
-    //Print the borders
-    Console.SetCursorPosition(0, 0);
-    Console.WriteLine(line);
-
-    Console.SetCursorPosition(0, fieldWidth);
-    Console.WriteLine(line);
-
-    //Print the rackets
-    for (int i = 0; i < racketLength; i++)
-    {
-        Console.SetCursorPosition(0, i + 1 + leftRacketHeight);
-        Console.WriteLine(racketTile);
-        Console.SetCursorPosition(fieldLength - 1, i + 1 + rightRacketHeight);
-        Console.WriteLine(racketTile);
-    }
+    DrawRackets(leftRacketHeight, rightRacketHeight);
 
     bool gameFinished = false;
     //Do until a key is pressed
@@ -59,6 +48,7 @@ while (true)
     {
         Console.SetCursorPosition(ballX, ballY);
         Console.WriteLine(ballTile);
+
         Thread.Sleep(150); //Adds a timer so that the players have time to react
 
         Console.SetCursorPosition(ballX, ballY);
@@ -83,12 +73,14 @@ while (true)
             ballX--;
         }
 
-        if (ballY == 1 || ballY == fieldWidth - 1)
+        // touching top or bottom
+        if (ballY == 2 || ballY == fieldWidth - 2)
         {
             isBallGoingDown = !isBallGoingDown; //Change direction
         }
 
-        if (ballX == 1)
+        // reaching left side
+        if (ballX == 2)
         {
             if (ballY >= leftRacketHeight + 1 && ballY <= leftRacketHeight + racketLength) //Left racket hits the ball and it bounces
             {
@@ -106,7 +98,8 @@ while (true)
             }
         }
 
-        if (ballX == fieldLength - 2)
+        // reaching right side
+        if (ballX == fieldLength - 3)
         {
             if (ballY >= rightRacketHeight + 1 && ballY <= rightRacketHeight + racketLength) //Right racket hits the ball and it bounces
             {
@@ -132,6 +125,8 @@ while (true)
     {
         break;
     }
+
+    ClearRackets(leftRacketHeight, rightRacketHeight);
 
     //Check which key has been pressed
     switch (Console.ReadKey().Key)
@@ -165,14 +160,7 @@ while (true)
             break;
     }
 
-    //Clear the rackets’ previous positions
-    for (int i = 1; i < fieldWidth; i++)
-    {
-        Console.SetCursorPosition(0, i);
-        Console.WriteLine(" ");
-        Console.SetCursorPosition(fieldLength - 1, i);
-        Console.WriteLine(" ");
-    }
+    //ClearRackets(fieldLength, fieldWidth);
 }
 
 Console.Clear();
@@ -186,3 +174,94 @@ else
 {
     Console.WriteLine("Left player won!");
 }
+
+
+void DrawBoard(int fieldLength, int fieldWidth)
+{
+    const char topLeft = (char)0x2554;
+    const char topRight = (char)0x2557;
+    const char bottomLeft = (char)0x255A;
+    const char bottomRight = (char)0x255D;
+    const char leftCross = (char)0x255F;
+    const char rightCross = (char)0x2562;
+    const char hLineDouble = (char)0x2550;
+    const char hLineSingle = (char)0x2500;
+    const char vLine = (char)0x2551;
+    string horizontalLineDouble = string.Concat(Enumerable.Repeat(hLineDouble, fieldLength - 2));
+    string horizontalLineSingle = string.Concat(Enumerable.Repeat(hLineSingle, fieldLength - 2));
+
+    Console.OutputEncoding = Encoding.Unicode;
+    Console.Clear();
+
+    // Top
+    DrawSymbol(0, 0, topLeft);
+    DrawText(1, 0, horizontalLineDouble);
+    DrawSymbol(fieldLength - 1, 0, topRight);
+
+    // Sides
+    for (int i = 1; i < fieldWidth - 3; i++)
+    {
+        DrawSymbol(0, i, vLine);
+        DrawSymbol(fieldLength - 1, i, vLine);
+    }
+
+    // Scoreboard
+    DrawSymbol(0, fieldWidth - 3, leftCross);
+    DrawText(1, fieldWidth - 3, horizontalLineSingle);
+    DrawSymbol(fieldLength - 1, fieldWidth - 3, rightCross);
+    DrawSymbol(0, fieldWidth - 2, vLine);
+    DrawSymbol(fieldLength - 1, fieldWidth - 2, vLine);
+
+    // Bottom
+    DrawSymbol(0, fieldWidth - 1, bottomLeft);
+    DrawText(1, fieldWidth - 1, horizontalLineDouble);
+    DrawSymbol(fieldLength - 1, fieldWidth - 1, bottomRight);
+}
+
+void DrawSymbol(int x, int y, char symbol)
+{
+    Console.SetCursorPosition(x, y);
+    Console.Write(symbol);
+}
+
+void DrawText(int x, int y, string text)
+{
+    Console.SetCursorPosition(x, y);
+    Console.Write(text);
+}
+
+void DrawRackets(int leftRacketHeight, int rightRacketHeight)
+{
+    DrawRacketSymbols(racketTile, leftRacketHeight, rightRacketHeight);
+}
+
+void ClearRackets(int leftRacketHeight, int rightRacketHeight)
+{
+    DrawRacketSymbols(' ', leftRacketHeight, rightRacketHeight);
+}
+
+void DrawRacketSymbols(char racketTile, int leftRacketHeight, int rightRacketHeight)
+{
+    //Print the rackets
+    for (int i = 0; i < racketLength; i++)
+    {
+        DrawSymbol(1, i + 1 + leftRacketHeight, racketTile);
+        DrawSymbol(fieldLength - 2, i + 1 + rightRacketHeight, racketTile);
+    }
+}
+
+
+//void ClearRackets(int fieldLength, int fieldWidth)
+//{
+//    //Clear the rackets’ previous positions
+//    for (int i = 1; i < fieldWidth; i++)
+//    {
+//        Console.SetCursorPosition(0, i);
+//        Console.WriteLine(" ");
+//        Console.SetCursorPosition(fieldLength - 1, i);
+//        Console.WriteLine(" ");
+
+//        DrawSymbol(0, i + 1 + leftRacketHeight, racketTile);
+//        DrawSymbol(fieldLength - 1, i + 1 + rightRacketHeight, racketTile);
+//    }
+//}
